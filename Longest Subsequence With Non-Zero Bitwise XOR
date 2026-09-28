@@ -18,3 +18,4 @@ class Solution {
         return allZero ? 0 : n - 1;
     }
 }
+
