@@ -1,0 +1,95 @@
+class Solution {
+
+    static final long MOD1 = 1_000_000_007L;
+    static final long MOD2 = 1_000_000_009L;
+    static final long BASE = 911382323L;
+
+    public long countPrefixSuffixPairs(String[] words) {
+
+        long ans = 0;
+
+        // key = pair of hashes, value = frequency
+        HashMap<Long, Integer> map = new HashMap<>();
+
+        for (String word : words) {
+
+            int n = word.length();
+
+            long[] prefix1 = new long[n + 1];
+            long[] prefix2 = new long[n + 1];
+
+            long[] power1 = new long[n + 1];
+            long[] power2 = new long[n + 1];
+
+            power1[0] = 1;
+            power2[0] = 1;
+
+            for (int i = 0; i < n; i++) {
+
+                int value = word.charAt(i) - 'a' + 1;
+
+                prefix1[i + 1] =
+                        (prefix1[i] * BASE + value) % MOD1;
+
+                prefix2[i + 1] =
+                        (prefix2[i] * BASE + value) % MOD2;
+
+                power1[i + 1] =
+                        (power1[i] * BASE) % MOD1;
+
+                power2[i + 1] =
+                        (power2[i] * BASE) % MOD2;
+            }
+
+            /*
+             * Check every possible length.
+             *
+             * prefix of length len:
+             * [0 ... len-1]
+             *
+             * suffix of length len:
+             * [n-len ... n-1]
+             */
+            for (int len = 1; len <= n; len++) {
+
+                long prefixHash1 = prefix1[len];
+                long prefixHash2 = prefix2[len];
+
+                long suffixHash1 =
+                        (prefix1[n]
+                                - prefix1[n - len] * power1[len] % MOD1
+                                + MOD1) % MOD1;
+
+                long suffixHash2 =
+                        (prefix2[n]
+                                - prefix2[n - len] * power2[len] % MOD2
+                                + MOD2) % MOD2;
+
+                if (prefixHash1 == suffixHash1 &&
+                    prefixHash2 == suffixHash2) {
+
+                    long key = combine(prefixHash1, prefixHash2);
+
+                    ans += map.getOrDefault(key, 0);
+                }
+            }
+
+            // Add current complete word
+            long fullHash = combine(
+                    prefix1[n],
+                    prefix2[n]
+            );
+
+            map.put(
+                    fullHash,
+                    map.getOrDefault(fullHash, 0) + 1
+            );
+        }
+
+        return ans;
+    }
+
+    private long combine(long h1, long h2) {
+        return (h1 << 32) ^ h2;
+    }
+}
